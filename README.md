@@ -8,4 +8,4 @@ Flags:
 
 `rrm` takes in any number of arguments, only works if both the file and the directory it's in have write access (bypass this with `sudo` if you dare), and stops if it encounters an error. A directory is removed by default if it's empty. A special file (e.g. a device file) is zeroed out without being removed.
 
-To use `rrm` from anywhere, put it in a PATH directory (I use `~/bin`).
+To use `rrm` from anywhere, put it in a PATH directory (I use `~/bin`). Make sure to make the file executable as a program first (with GUI or `chmod +x </path/to/file>`).
