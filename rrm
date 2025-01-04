@@ -1,0 +1,110 @@
+#!/bin/bash
+
+# rrm — overwrite a file with zeroes and remove it
+# Copyright (C) 2025 StudioGuma
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+set -e
+
+usage=$'Usage: '$0$' [OPTION] [FILE]...
+-r — recursively remove directories and their contents
+-v — print removed files to terminal'
+
+recursive=false
+verbose=false
+
+while getopts "rv" flag; do
+	case $flag in
+	r)
+		recursive=true
+		;;
+	v)
+		verbose=true
+		;;
+	*)
+		echo "$usage" >&2
+		exit 1
+	esac
+done
+
+# check first character of first argument
+while [[ ${1:0:1} = '-' && $# -gt 0 ]]; do
+	shift
+done
+
+if [ $# -eq 0 ]; then
+	echo "$usage" >&2
+	exit 1
+fi
+
+for arg in "$@"; do
+	if [ ! -e "$arg" ]; then
+		echo "$0: "$arg" does not exist" >&2
+		exit 1
+	fi
+
+	path=$(readlink -f "$arg")
+	self=$(readlink -f $0)
+
+	# check if directory
+	if [ -d "$arg" ]; then
+		arglist=$(ls -A "$arg" | tr '\n' ' ')
+
+		if [ -z "$arglist" ]; then
+			rmdir "$arg"
+
+		elif [ $recursive = true ]; then
+			cd "$arg"
+			# recursively call self
+			if [ $verbose = true ]; then
+				$self -r -v $arglist
+			else
+				$self -r $arglist
+			fi
+
+			cd $OLDPWD
+			rmdir "$arg"
+
+		else
+			echo "$0: $arg is a non-empty directory" >&2
+			echo "$usage" >&2
+			exit 1
+		fi
+
+		if [ $verbose = true ]; then
+			echo "really removed $path (directory)"
+		fi
+
+	else
+		size=$(wc -c "$arg" | awk '{print $1}')
+
+		if [ $size -gt 0 ]; then
+			dd if=/dev/zero bs=$size count=1 of="$arg" status=none
+		fi
+		if [ -f "$arg" ]; then
+			rm -f "$arg"
+		fi
+
+		if [ $verbose = true ]; then
+			if [ $size -eq 1 ]; then
+				echo "really removed $path (1 byte)"
+			else
+				echo "really removed $path ($size bytes)"
+			fi
+		fi
+	fi
+done
+
+exit 0
