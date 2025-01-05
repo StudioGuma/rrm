@@ -94,7 +94,7 @@ for arg in "$@"; do
 			dd if=/dev/zero bs=$size count=1 of="$arg" status=none
 		fi
 		if [ -f "$arg" ]; then
-			rm -f "$arg"
+			rm "$arg"
 		fi
 
 		if [ $verbose = true ]; then
