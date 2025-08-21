@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # rrm — overwrite a file with zeroes and remove it
 # Copyright (C) 2025 StudioGuma
